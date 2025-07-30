@@ -7,7 +7,10 @@ import java.util.List;
 
 @Repository
 public interface ProductRepository extends MongoRepository<Product, String> {
-    // This method name is crucial. Spring automatically creates a query
-    // to find all products where the 'category' field matches the input string.
+    // Finds products by category (case-sensitive).
     List<Product> findByCategory(String category);
+
+    // **NEW**: Finds products where the name contains the search term, ignoring case.
+    // e.g., searching for "milk" will find "Amul Gold Milk".
+    List<Product> findByNameContainingIgnoreCase(String name);
 }

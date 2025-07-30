@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
-import { ShoppingCartIcon, UserIcon } from './Icons';
+import { SearchIcon, ShoppingCartIcon, UserIcon } from './Icons';
 import { useCart } from '../context/CartContext';
 
-const Header = ({ onLogoClick }) => { // Accept onLogoClick prop
+const Header = ({ onLogoClick, onSearch }) => {
     const { cartQuantity, setIsCartOpen } = useCart();
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        if (searchTerm.trim()) {
+            onSearch(searchTerm.trim());
+        }
+    };
 
     return (
         <header className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-40">
@@ -14,10 +22,26 @@ const Header = ({ onLogoClick }) => { // Accept onLogoClick prop
                         <span className="text-2xl font-bold text-green-600">BlinkStore</span>
                         <span className="text-2xl font-light text-gray-700">.AI</span>
                     </button>
-                    {/* ... other header content ... */}
-                     <div className="hidden md:flex items-center space-x-6">
-                        <a href="#" className="text-gray-600 hover:text-green-600">Deals</a>
-                        <a href="#" className="text-gray-600 hover:text-green-600">My Orders</a>
+
+                    {/* Desktop Search Bar */}
+                    <div className="hidden md:flex flex-1 max-w-xl mx-8">
+                        <form onSubmit={handleSearchSubmit} className="relative w-full">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <SearchIcon />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search for products..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="block w-full bg-gray-100 border border-gray-200 rounded-lg py-2 pl-10 pr-3 leading-5 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            />
+                        </form>
+                    </div>
+
+                    {/* Desktop Nav & Actions */}
+                    <div className="hidden md:flex items-center space-x-6">
+                        <a href="#" className="text-gray-600 hover:text-green-600 transition-colors">My Orders</a>
                         <button onClick={() => setIsCartOpen(true)} className="relative text-gray-600 hover:text-green-600 transition-colors">
                             <ShoppingCartIcon />
                             {cartQuantity > 0 && (

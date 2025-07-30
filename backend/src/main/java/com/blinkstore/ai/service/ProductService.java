@@ -17,13 +17,17 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    // The logic to check for the category parameter and call the correct repository method.
-    public List<Product> getProducts(Optional<String> category) {
-        // If a category is present and not empty, filter by it.
+    // This method now accepts both a category and a search term.
+    public List<Product> getProducts(Optional<String> category, Optional<String> search) {
+        // If a search term is provided, use it to search by name.
+        if (search.isPresent() && !search.get().isBlank()) {
+            return productRepository.findByNameContainingIgnoreCase(search.get());
+        }
+        // If no search term, but a category is provided, filter by category.
         if (category.isPresent() && !category.get().isBlank()) {
             return productRepository.findByCategory(category.get());
         }
-        // Otherwise, return all products.
+        // If neither is provided, return all products.
         return productRepository.findAll();
     }
 }

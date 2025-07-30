@@ -21,10 +21,12 @@ public class ProductController {
         this.productService = productService;
     }
 
-    // This endpoint now correctly uses the @RequestParam to filter.
-    // Example URL: /api/v1/products?category=Fruits%20&%20Vegetables
+    // The endpoint now accepts both 'category' and 'search' parameters.
+    // The service layer will decide which one to use.
     @GetMapping
-    public List<Product> getProducts(@RequestParam Optional<String> category) {
-        return productService.getProducts(category);
+    public List<Product> getProducts(
+            @RequestParam Optional<String> category,
+            @RequestParam Optional<String> search) {
+        return productService.getProducts(category, search);
     }
 }
