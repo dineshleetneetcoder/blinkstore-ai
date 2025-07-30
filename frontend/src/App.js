@@ -5,43 +5,38 @@ import AIChat from './components/AIChat';
 import CartModal from './components/CartModal';
 import HomePage from './pages/HomePage';
 import ProductListPage from './pages/ProductListPage';
+import CheckoutPage from './pages/CheckoutPage';
+import MyOrdersPage from './pages/MyOrdersPage';
 
 export default function App() {
     const [view, setView] = useState('home');
-    const [selectedCategory, setSelectedCategory] = useState(null);
-    const [searchQuery, setSearchQuery] = useState(''); // State for the search query
+    const [context, setContext] = useState({});
 
-    const navigateToCategory = (categoryName) => {
-        setSearchQuery(''); // Clear search when navigating to a category
-        setSelectedCategory(categoryName);
-        setView('products');
+    const navigate = (targetView, data = {}) => {
+        setView(targetView);
+        setContext(data);
     };
 
-    const handleSearch = (query) => {
-        setSelectedCategory(null); // Clear category when searching
-        setSearchQuery(query);
-        setView('products'); // Reuse the product list page for search results
+    const renderView = () => {
+        switch (view) {
+            case 'products':
+                return <ProductListPage context={context} onNavigate={navigate} />;
+            case 'checkout':
+                return <CheckoutPage onNavigate={navigate} />;
+            case 'orders':
+                return <MyOrdersPage onNavigate={navigate} />;
+            case 'home':
+            default:
+                return <HomePage onNavigate={navigate} />;
+        }
     };
-    
-    const navigateToHome = () => {
-        setSelectedCategory(null);
-        setSearchQuery('');
-        setView('home');
-    }
 
     return (
         <div className="bg-gray-50 min-h-screen font-sans">
-            <Header onLogoClick={navigateToHome} onSearch={handleSearch} />
-            <CartModal />
+            <Header onNavigate={navigate} />
+            <CartModal onNavigate={navigate} />
             <main>
-                {view === 'home' && <HomePage onCategoryClick={navigateToCategory} />}
-                {view === 'products' && (
-                    <ProductListPage 
-                        category={selectedCategory} 
-                        searchQuery={searchQuery}
-                        onBackToHome={navigateToHome} 
-                    />
-                )}
+                {renderView()}
             </main>
             <AIChat />
             <Footer />

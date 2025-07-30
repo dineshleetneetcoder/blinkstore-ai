@@ -15,8 +15,8 @@ const categories = [
     { name: 'Chocolates & Candies', image: 'https://placehold.co/400x400/4C1D95/FFFFFF?text=Candies' },
 ];
 
-const CategoryCard = ({ category, onCategoryClick }) => (
-    <button onClick={() => onCategoryClick(category.name)} className="group text-center focus:outline-none">
+const CategoryCard = ({ category, onNavigate }) => (
+    <button onClick={() => onNavigate('products', { category: category.name })} className="group text-center focus:outline-none">
         <div className="w-28 h-28 md:w-40 md:h-40 mx-auto rounded-full overflow-hidden shadow-md group-hover:shadow-xl transition-shadow transform group-hover:-translate-y-1">
             <img src={category.image} alt={category.name} className="w-full h-full object-cover" />
         </div>
@@ -24,12 +24,12 @@ const CategoryCard = ({ category, onCategoryClick }) => (
     </button>
 );
 
-const CategorySection = ({ onCategoryClick }) => (
+const CategorySection = ({ onNavigate }) => (
     <section className="py-12 md:py-16 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900">Shop by Category</h2>
             <div className="mt-8 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 md:gap-8">
-                {categories.map(cat => <CategoryCard key={cat.name} category={cat} onCategoryClick={onCategoryClick} />)}
+                {categories.map(cat => <CategoryCard key={cat.name} category={cat} onNavigate={onNavigate} />)}
             </div>
         </div>
     </section>

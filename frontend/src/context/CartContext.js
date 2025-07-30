@@ -12,7 +12,10 @@ export const CartProvider = ({ children }) => {
     const { getToken, isSignedIn } = useAuth();
 
     const fetchCart = async () => {
-        if (!isSignedIn) return;
+        if (!isSignedIn) {
+            setCart({ items: [] });
+            return;
+        };
         try {
             const token = await getToken();
             const response = await axios.get('http://localhost:8080/api/v1/cart', {
@@ -21,7 +24,7 @@ export const CartProvider = ({ children }) => {
             setCart(response.data);
         } catch (error) {
             if (error.response && error.response.status === 404) {
-                setCart({ items: [] }); // User has an account but no cart yet
+                setCart({ items: [] });
             } else {
                 console.error('Failed to fetch cart:', error);
             }
@@ -29,7 +32,6 @@ export const CartProvider = ({ children }) => {
     };
 
     const addToCart = (product) => {
-        // This function updates the cart state locally for instant UI feedback
         setCart(prevCart => {
             const existingItem = prevCart.items.find(item => item.productId === product.id);
             let newItems;
@@ -38,34 +40,22 @@ export const CartProvider = ({ children }) => {
                     item.productId === product.id ? { ...item, quantity: item.quantity + 1 } : item
                 );
             } else {
-                const newItem = {
-                    productId: product.id,
-                    name: product.name,
-                    quantity: 1,
-                    price: product.price
-                };
-                newItems = [...prevCart.items, newItem];
+                const newItem = { productId: product.id, name: product.name, quantity: 1, price: product.price };
+                newItems = [...(prevCart?.items || []), newItem];
             }
             return { ...prevCart, items: newItems };
         });
     };
+    
+    const clearCart = () => {
+        setCart({ items: [] });
+    };
 
     useEffect(() => {
-        // Fetch the cart whenever the user's sign-in status changes.
         fetchCart();
     }, [isSignedIn]);
 
     const cartQuantity = cart ? cart.items.reduce((total, item) => total + item.quantity, 0) : 0;
-
-    const value = {
-        cart,
-        addToCart,
-        fetchCart,
-        cartQuantity,
-        isCartOpen,
-        setIsCartOpen
-    };
-
+    const value = { cart, addToCart, fetchCart, clearCart, cartQuantity, isCartOpen, setIsCartOpen };
     return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
-
