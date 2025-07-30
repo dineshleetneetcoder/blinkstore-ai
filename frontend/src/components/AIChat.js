@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
+import { useProducts } from '../context/ProductContext'; // Import the new product hook
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { MessageSquareIcon, XIcon } from './Icons';
 
@@ -20,6 +21,7 @@ const AIChat = () => {
     const [actionableProducts, setActionableProducts] = useState([]);
     
     const { addToCart } = useCart();
+    const { getProductById } = useProducts(); // Get the product lookup function
     const { getToken } = useAuth();
     const { isSignedIn } = useUser();
     const chatEndRef = useRef(null);
@@ -29,6 +31,7 @@ const AIChat = () => {
     }, [messages]);
 
     const handleSendMessage = async (e) => {
+        // ... (This function remains the same)
         e.preventDefault();
         const textToSend = inputValue.trim();
         if (!textToSend || isLoading) return;
@@ -37,10 +40,9 @@ const AIChat = () => {
         setMessages(prev => [...prev, userMessage]);
         setInputValue('');
         setIsLoading(true);
-        setActionableProducts([]); // Clear previous actions
+        setActionableProducts([]);
 
         try {
-            // Send the last 6 messages for context
             const history = messages.slice(-5).map(msg => ({ sender: msg.sender, text: msg.text }));
             history.push({ sender: 'user', text: textToSend });
 
@@ -53,7 +55,6 @@ const AIChat = () => {
             if (aiResponse.actionableProducts && aiResponse.actionableProducts.length > 0) {
                 setActionableProducts(aiResponse.actionableProducts);
             }
-
         } catch (error) {
             console.error("Error with AI Service:", error);
             const errorMessage = { sender: 'ai', text: "Sorry, I'm having a little trouble thinking right now." };
@@ -73,27 +74,34 @@ const AIChat = () => {
 
         const token = await getToken();
         
-        // Add each product to the cart
-        for (const product of actionableProducts) {
-            try {
-                await axios.post(
-                    'http://localhost:8080/api/v1/cart/add',
-                    { productId: product.productId, quantity: 1 },
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-                // We need to pass the full product object to our local context
-                // This is a simplified version; a real app might fetch the product details first
-                addToCart({ id: product.productId, name: product.name, price: 0 }); 
-            } catch (error) {
-                console.error(`Failed to add ${product.name} to cart:`, error);
+        for (const actionableProduct of actionableProducts) {
+            // === THIS IS THE FIX ===
+            // 1. Look up the full product details from our global product list.
+            const fullProduct = getProductById(actionableProduct.productId);
+
+            if (fullProduct) {
+                // 2. Add the complete product (with the correct price) to the cart.
+                try {
+                    await axios.post(
+                        'http://localhost:8080/api/v1/cart/add',
+                        { productId: fullProduct.id, quantity: 1 },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    addToCart(fullProduct); // Use the full product object
+                } catch (error) {
+                    console.error(`Failed to add ${fullProduct.name} to cart:`, error);
+                }
+            } else {
+                console.warn(`Could not find product with ID ${actionableProduct.productId} in the catalog.`);
             }
         }
 
         const successMessage = { sender: 'ai', text: `Okay, I've added ${actionableProducts.length} item(s) to your cart!` };
         setMessages(prev => [...prev, successMessage]);
-        setActionableProducts([]); // Clear the action
+        setActionableProducts([]);
     };
 
+    // ... (The rest of the component's JSX remains the same)
     return (
         <>
             <button onClick={() => setIsChatOpen(true)} className="fixed bottom-6 right-6 bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-transform transform hover:scale-110 z-50">
