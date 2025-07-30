@@ -10,6 +10,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.http.HttpMethod;
+import org.springframework.context.annotation.Bean;
 
 import java.util.Arrays;
 
@@ -20,14 +22,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // This line tells Spring Security to use the corsConfigurationSource Bean below.
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            // Disable CSRF for stateless APIs
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(authorize -> authorize
-                // Allow anyone to GET products
                 .requestMatchers(HttpMethod.GET, "/api/v1/products").permitAll()
-                // All other requests must be authenticated
+                // **NEW RULE**: Allow anyone to use the AI chat
+                .requestMatchers(HttpMethod.POST, "/api/v1/ai/chat").permitAll()
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2.jwt());
