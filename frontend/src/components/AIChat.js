@@ -35,7 +35,7 @@ const AIChat = () => {
             const payload = {
                 contents: [{ role: "user", parts: [{ text: prompt }] }]
             };
-            const apiKey = ""; // Canvas will provide this
+            const apiKey = "AIzaSyA3PWiUSjaDfGVr6bF2ktB7G39jpUsYXbc"; // Canvas will provide this
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
             const response = await fetch(apiUrl, {

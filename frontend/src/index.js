@@ -3,8 +3,8 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import { ClerkProvider } from '@clerk/clerk-react';
+import { CartProvider } from './context/CartContext'; // Import the new provider
 
-// Get the Publishable Key from the .env file
 const PUBLISHABLE_KEY = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY;
 
 if (!PUBLISHABLE_KEY) {
@@ -15,7 +15,9 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-      <App />
+      <CartProvider> {/* Wrap the App with the CartProvider */}
+        <App />
+      </CartProvider>
     </ClerkProvider>
   </React.StrictMode>
 );

@@ -1,37 +1,35 @@
 import React, { useState } from 'react';
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
+import { useCart } from '../context/CartContext'; // Import the useCart hook
 import axios from 'axios';
 
 const ProductCard = ({ product }) => {
     const { getToken } = useAuth();
+    const { isSignedIn } = useUser();
+    const { addToCart, setIsCartOpen } = useCart(); // Get cart functions from context
     const [buttonText, setButtonText] = useState('Add');
 
     const handleAddToCart = async () => {
-        const token = await getToken();
-        if (!token) {
-            // This can happen if the user is not logged in.
-            // You might want to prompt them to log in here.
+        if (!isSignedIn) {
             alert("Please sign in to add items to your cart.");
             return;
         }
 
         setButtonText('Adding...');
+        const token = await getToken();
 
         try {
             await axios.post(
                 'http://localhost:8080/api/v1/cart/add',
-                {
-                    productId: product.id,
-                    quantity: 1, // Add one item at a time
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                { productId: product.id, quantity: 1 },
+                { headers: { Authorization: `Bearer ${token}` } }
             );
+            
+            // Update the global cart state instantly
+            addToCart(product);
+
             setButtonText('Added!');
-            setTimeout(() => setButtonText('Add'), 2000); // Reset after 2 seconds
+            setTimeout(() => setButtonText('Add'), 2000);
         } catch (error) {
             console.error("Failed to add to cart:", error);
             setButtonText('Error');
@@ -39,6 +37,7 @@ const ProductCard = ({ product }) => {
         }
     };
 
+    // ... your JSX for the card ...
     return (
         <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden group">
             <div className="relative h-40">
