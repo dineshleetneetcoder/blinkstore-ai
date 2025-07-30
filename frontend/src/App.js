@@ -1,39 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
 import Header from './components/Header';
-import HeroSection from './components/HeroSection';
-import CategorySection from './components/CategorySection';
-import ProductSection from './components/ProductSection';
 import Footer from './components/Footer';
 import AIChat from './components/AIChat';
-import CartModal from './components/CartModal'; // Import the new modal
+import CartModal from './components/CartModal';
+import HomePage from './pages/HomePage'; // Import new HomePage
+import ProductListPage from './pages/ProductListPage'; // Import new ProductListPage
 
 export default function App() {
-    const [products, setProducts] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    // 'view' controls which page is shown. 'home' or 'products'.
+    const [view, setView] = useState('home'); 
+    // 'selectedCategory' holds the category the user clicked on.
+    const [selectedCategory, setSelectedCategory] = useState(null);
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const response = await axios.get('http://localhost:8080/api/v1/products');
-                setProducts(response.data);
-            } catch (error) {
-                console.error("Failed to fetch products:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchProducts();
-    }, []);
+    // This function is passed to other components to allow them to change the view.
+    const navigateToCategory = (categoryName) => {
+        setSelectedCategory(categoryName);
+        setView('products');
+    };
+    
+    const navigateToHome = () => {
+        setSelectedCategory(null);
+        setView('home');
+    }
 
     return (
         <div className="bg-gray-50 min-h-screen font-sans">
-            <Header />
-            <CartModal /> {/* Add the CartModal here */}
+            <Header onLogoClick={navigateToHome} />
+            <CartModal />
             <main>
-                <HeroSection />
-                <CategorySection />
-                <ProductSection products={products} isLoading={isLoading} />
+                {/* Conditional rendering: show a page based on the 'view' state */}
+                {view === 'home' && <HomePage onCategoryClick={navigateToCategory} />}
+                {view === 'products' && <ProductListPage category={selectedCategory} onBackToHome={navigateToHome} />}
             </main>
             <AIChat />
             <Footer />
