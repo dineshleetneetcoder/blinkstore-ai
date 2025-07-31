@@ -1,20 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
+
 import Header from './components/Header';
 import Footer from './components/Footer';
 import AIChat from './components/AIChat';
 import CartModal from './components/CartModal';
+import Toast from './components/Toast';
+
 import HomePage from './pages/HomePage';
 import ProductListPage from './pages/ProductListPage';
 import CheckoutPage from './pages/CheckoutPage';
 import MyOrdersPage from './pages/MyOrdersPage';
-import Toast from './components/Toast';
+import AdminPage from './pages/AdminPage'; // 👈 Added AdminPage
 
 export default function App() {
     const [view, setView] = useState('home');
     const [context, setContext] = useState({});
     const [toast, setToast] = useState({ message: '', show: false });
+
     const { isSignedIn, user, isLoaded } = useUser();
+    const isAdmin = user?.publicMetadata?.role === 'admin'; // 👈 Determine admin role
 
     useEffect(() => {
         const welcomeTimer = setTimeout(() => {
@@ -48,6 +53,8 @@ export default function App() {
                 return <CheckoutPage onNavigate={navigate} />;
             case 'orders':
                 return <MyOrdersPage onNavigate={navigate} />;
+            case 'admin': // 👈 Admin case
+                return <AdminPage onNavigate={navigate} />;
             case 'home':
             default:
                 return <HomePage onNavigate={navigate} />;
@@ -56,16 +63,14 @@ export default function App() {
 
     return (
         <div className="bg-gray-50 min-h-screen font-sans">
-            <Toast 
-                message={toast.message} 
-                show={toast.show} 
-                onHide={() => setToast({ ...toast, show: false })} 
+            <Toast
+                message={toast.message}
+                show={toast.show}
+                onHide={() => setToast({ ...toast, show: false })}
             />
-            <Header onNavigate={navigate} />
+            <Header onNavigate={navigate} isAdmin={isAdmin} /> {/* 👈 Pass isAdmin */}
             <CartModal onNavigate={navigate} />
-            <main>
-                {renderView()}
-            </main>
+            <main>{renderView()}</main>
             <AIChat />
             <Footer />
         </div>
